@@ -1,0 +1,7 @@
+[Unit]
+Wants=tailscale-online.target
+After=tailscale-online.target
+
+[Service]
+ExecStartPre=/usr/bin/tailscale ip --assert=<tailscale-ipv4>
+# ExecStartPre=/usr/bin/tailscale ip --assert=<tailscale-ipv6>

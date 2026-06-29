@@ -1,0 +1,6 @@
+tailscale-online-systemd
+
+Copyright 2026 Omkhar Arasaratnam
+
+This product includes documentation and configuration examples for using
+Tailscale with systemd-managed Linux services.

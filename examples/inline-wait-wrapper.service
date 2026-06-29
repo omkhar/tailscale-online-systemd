@@ -1,0 +1,13 @@
+[Unit]
+Description=Example service that waits for Tailscale before binding
+After=tailscaled.service
+Wants=tailscaled.service
+
+[Service]
+Type=simple
+Environment=SERVICE_LISTEN_ADDR=replace-with-tailscale-ip:8443
+ExecStart=/bin/sh -c '/usr/bin/tailscale wait && exec /usr/local/bin/example-service --listen "$SERVICE_LISTEN_ADDR"'
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
