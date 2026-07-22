@@ -1,0 +1,39 @@
+name: Validate
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check the test scripts
+        run: shellcheck tests/test-repository.sh tests/test-systemd.sh
+
+      - name: Test repository contracts
+        run: bash tests/test-repository.sh
+
+      - name: Test systemd integration
+        env:
+          REQUIRE_SYSTEMD_ANALYZE: "1"
+        run: bash tests/test-systemd.sh

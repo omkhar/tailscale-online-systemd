@@ -1,39 +1,85 @@
-# Implementation Notes
+# Implementation notes
 
-## Prefer `tailscale-online.target`
+## Upstream units
 
-Modern Linux Tailscale packages provide `tailscale-online.target`. The target depends on `tailscale-wait-online.service`, which runs:
+The Tailscale v1.98.9 source contains `tailscale-online.target` and `tailscale-wait-online.service` for Linux systemd packages.
+
+The target has these dependencies:
 
 ```ini
-ExecStart=/usr/bin/tailscale wait
+Requires=tailscale-wait-online.service
+After=tailscale-wait-online.service
 ```
 
-`tailscale wait` waits for the Tailscale daemon, backend state, interface, and Tailscale IP assignment before returning successfully.
+The wait service has these important settings:
 
-Use this when you are extending an existing packaged service with a drop-in:
+```ini
+After=tailscaled.service
+Requires=tailscaled.service
+Type=oneshot
+ExecStart=/usr/bin/tailscale wait
+RemainAfterExit=yes
+```
+
+The source links are in `README.md`.
+
+## Protected-service dependency
+
+Use this dependency for a service that must not start after a failed online-target start:
 
 ```ini
 [Unit]
-Wants=tailscale-online.target
+Requires=tailscale-online.target
 After=tailscale-online.target
 ```
 
-`Wants=` pulls the target into the transaction. `After=` supplies the ordering. Use both.
+`Requires=` creates the strong dependency.
+If the target fails and the protected service is ordered after it, systemd does not start the protected service.
 
-## Add An Exact-IP Assertion When Binding To A Fixed Address
+`After=` creates only an order.
+It does not start the target and it does not create a success requirement.
 
-If the service binds to a specific Tailscale address, waiting for any Tailscale IP may still be too broad. Assert the address that the service configuration requires:
+`Wants=` creates a weak dependency.
+A failure in a wanted unit does not stop the wanting unit from starting.
+For this reason, the strict examples do not use `Wants=`.
+
+## Wait behavior
+
+With a TUN interface, `tailscale wait` checks these conditions:
+
+1. The local Tailscale client responds.
+2. The backend state is `Running`.
+3. The node has a Tailscale IP address.
+4. A local interface has the first reported Tailscale address.
+
+In userspace-networking mode, no physical TUN interface exists.
+The command still checks the daemon, the `Running` state, and a reported Tailscale address in this mode.
+
+The CLI default timeout is zero.
+Zero means that the command waits indefinitely.
+The upstream wait service is a oneshot service and does not set a shorter timeout.
+
+## Fixed-address check
+
+Use an address check when a service binds to one fixed Tailscale address:
 
 ```ini
 [Service]
 ExecStartPre=/usr/bin/tailscale ip --assert=<tailscale-ipv4>
 ```
 
-If the address is missing, `tailscale ip --assert` exits non-zero and systemd does not start the main service process.
+The CLI compares the supplied address with the current node addresses.
+It exits with a nonzero status when it does not find the address.
+The assertion reads Tailscale status.
+It does not inspect local interface addresses.
 
-## Use A Drop-In For Packaged Services
+systemd runs the main `ExecStart=` command only after all unprefixed `ExecStartPre=` commands succeed.
+Use one check for each fixed address that the service needs.
 
-Do not edit package-owned unit files under `/usr/lib/systemd/system` or `/lib/systemd/system`. Put local policy in `/etc/systemd/system/<unit>.d/*.conf`:
+## Package-service drop-in
+
+Do not edit a package-owned unit.
+Install local policy in `/etc/systemd/system/<unit>.d/*.conf`.
 
 ```sh
 sudo install -d -m 0755 /etc/systemd/system/example.service.d
@@ -42,25 +88,41 @@ sudo install -m 0644 examples/basic-drop-in.conf \
 sudo systemctl daemon-reload
 ```
 
-Review the merged unit:
+Inspect the effective unit:
 
 ```sh
 systemctl cat example.service
-systemctl show example.service -p Wants -p After -p ExecStartPre
+systemctl show example.service -p Requires -p After -p ExecStartPre
 ```
 
-## Inline Wrapper Pattern
+## Inline wrapper
 
-If you own the service unit and can change `ExecStart`, Tailscale's CLI documentation also supports an inline form:
+Use the inline example only for a service unit that you own.
+The shell waits and then replaces itself with the service process:
 
 ```ini
 ExecStart=/bin/sh -c '/usr/bin/tailscale wait && exec /usr/local/bin/example-service'
 ```
 
-For packaged services, a drop-in is usually cleaner because it avoids replacing the vendor's `ExecStart`.
+The wrapper uses `Requires=tailscaled.service` and `After=tailscaled.service`.
+The `tailscale wait` command supplies the readiness check.
 
-## Failure Behavior
+## Failure and recovery
 
-When `ExecStartPre=` fails, systemd treats the service start as failed and does not run the main `ExecStart=` command. This is useful when starting without the exact Tailscale address would produce a worse failure mode, such as a daemon exiting after partially binding sockets.
+A failed target start blocks a protected service that uses `Requires=` and `After=`.
+An address assertion failure blocks the main service command.
+A manual stop or restart of the required target also stops or restarts the protected service.
 
-Use normal systemd restart and start-limit policy for the service you are protecting.
+A `systemctl restart tailscale-online.target` command uses one restart transaction.
+The `Requires=` dependency restarts the protected service in that transaction.
+
+A separate target stop has different recovery behavior.
+Starting the target later does not start the protected service.
+Start the protected service explicitly after the target is ready.
+
+The examples do not add a restart policy to a package-owned service.
+Use the existing service policy or add a reviewed host-specific policy.
+
+The online target is not a continuous monitor.
+After its first successful activation, the oneshot wait service stays active because it has `RemainAfterExit=yes`.
+A later loss of Tailscale connectivity does not reset the target automatically.
