@@ -131,6 +131,7 @@ main() {
   require_text "${readme}" "boot-time readiness"
   require_text "${readme}" "can wait indefinitely"
   require_text "${readme}" "checks Tailscale status, not local interface addresses"
+  require_text "${readme}" "Starting the target later does not start the protected service"
   reject_text "${readme}" "Wants=tailscale-online.target"
 
   check_document_inventory

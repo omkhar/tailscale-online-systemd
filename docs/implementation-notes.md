@@ -113,6 +113,13 @@ A failed target start blocks a protected service that uses `Requires=` and `Afte
 An address assertion failure blocks the main service command.
 A manual stop or restart of the required target also stops or restarts the protected service.
 
+A `systemctl restart tailscale-online.target` command uses one restart transaction.
+The `Requires=` dependency restarts the protected service in that transaction.
+
+A separate target stop has different recovery behavior.
+Starting the target later does not start the protected service.
+Start the protected service explicitly after the target is ready.
+
 The examples do not add a restart policy to a package-owned service.
 Use the existing service policy or add a reviewed host-specific policy.
 

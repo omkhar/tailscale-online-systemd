@@ -183,6 +183,7 @@ See [`docs/security-considerations.md`](docs/security-considerations.md).
 - The target does not monitor later Tailscale connectivity changes.
 - `RemainAfterExit=yes` keeps the wait service active after the first successful check.
 - A manual stop or restart of the required target also stops or restarts the protected service.
+- Starting the target later does not start the protected service after a separate target stop.
 - `tailscale wait` can wait indefinitely when Tailscale does not become ready.
 - The basic example accepts any local Tailscale address.
 - The `tailscale ip --assert` command checks Tailscale status, not local interface addresses.
