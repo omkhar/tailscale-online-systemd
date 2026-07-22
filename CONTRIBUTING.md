@@ -1,28 +1,48 @@
 # Contributing
 
-Contributions are welcome when they keep the repository focused on small, reusable systemd examples for Tailscale-dependent services.
+Keep each change small and specific to systemd services that depend on Tailscale readiness.
 
-## Guidelines
+## Content rules
 
-- Prefer primary documentation links.
-- Keep examples generic.
-- Use placeholders for infrastructure-specific values.
-- Do not include real hostnames, tailnet names, IP addresses, credentials, or logs.
-- Avoid distribution-specific assumptions unless the example says which distribution it targets.
-- Keep commit messages concise and descriptive.
+- Use ASD-STE100 Simplified Technical English for repository-authored prose.
+- Use primary sources for technical claims.
+- Use placeholders for host-specific values.
+- Do not add real hostnames, tailnet names, addresses, credentials, or logs.
+- State each package or distribution requirement.
+- Update all affected documents and tests in the same change.
+- Do not edit `LICENSE`.
 
-## Testing Changes
+## Example rules
 
-For unit drop-ins, verify the merged unit on a Linux system with Tailscale installed:
+- Use `Requires=tailscale-online.target` and `After=tailscale-online.target` for the strict drop-in pattern.
+- Use `tailscale ip --assert=<address>` for each fixed address that a service needs.
+- Put a package-service override in `/etc/systemd/system/<unit>.d/`.
+- Do not edit a package-owned unit in `/usr/lib/systemd/system` or `/lib/systemd/system`.
+- Keep the inline wrapper generic.
+
+## Tests
+
+Run these local checks:
 
 ```sh
-systemctl cat example.service
-systemctl show example.service -p Wants -p After -p ExecStartPre
+bash tests/test-repository.sh
+bash tests/test-systemd.sh
+shellcheck tests/test-repository.sh tests/test-systemd.sh
+actionlint
+zizmor --pedantic .
+git diff --check
 ```
 
-For exact-IP examples, confirm that the assertion succeeds only for an address assigned to the node:
+The systemd test skips on a host that does not have `systemd-analyze`.
+Run it on Linux before you publish a systemd change.
 
-```sh
-tailscale ip
-tailscale ip --assert=<tailscale-ipv4>
-```
+The repository has no product-code mutation target.
+Do not claim mutation coverage for documentation or configuration files.
+
+## Pull request
+
+- Use a signed commit.
+- Describe the changed contract.
+- Include the local test results.
+- Wait for CI and review before merge.
+- Remove sensitive data from test output and comments.

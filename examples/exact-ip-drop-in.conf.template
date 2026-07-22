@@ -1,5 +1,5 @@
 [Unit]
-Wants=tailscale-online.target
+Requires=tailscale-online.target
 After=tailscale-online.target
 
 [Service]

@@ -1,7 +1,7 @@
 [Unit]
 Description=Example service that waits for Tailscale before binding
 After=tailscaled.service
-Wants=tailscaled.service
+Requires=tailscaled.service
 
 [Service]
 Type=simple

@@ -1,32 +1,47 @@
-# Review Checklist
+# Review checklist
 
-Use this checklist before applying the pattern to a production service or publishing a derivative example.
+Use this checklist before you change a production service.
 
-## Technical Review
+## Host check
 
-- The service really needs Tailscale online before it starts.
-- `Wants=tailscale-online.target` and `After=tailscale-online.target` are both present.
-- Exact-IP services use `tailscale ip --assert=<address>` for every fixed Tailscale address they bind.
-- The drop-in is installed under `/etc/systemd/system/<unit>.d/`, not by editing a package-owned unit.
-- `systemctl daemon-reload` was run after installing the drop-in.
-- `systemctl cat <unit>` shows the merged configuration expected.
-- `systemctl show <unit> -p Wants -p After -p ExecStartPre` confirms the dependency and pre-start checks.
-- The service starts cleanly after Tailscale is online.
-- A reboot test confirms the ordering works during boot.
+- Confirm that the host uses systemd.
+- Confirm that the Tailscale package supplies the units and CLI path in `README.md`.
+- Record the installed Tailscale version.
+- Confirm that the protected service must bind to a Tailscale address.
+- Identify each fixed address in the service configuration.
+- Plan a recovery method before a reboot test.
 
-## Editorial Review
+## Configuration check
 
-- The README explains the problem before the solution.
-- Examples use placeholders rather than real infrastructure values.
-- Commands are copyable after replacing placeholders.
-- The distinction between dependency and ordering is explicit.
-- The security section does not imply that startup ordering is access control.
-- Links point to primary documentation.
-- Commit messages describe the change without tool-generated wording.
+- Use `Requires=tailscale-online.target`.
+- Use `After=tailscale-online.target`.
+- Add one `tailscale ip --assert=<address>` command for each required fixed address.
+- Install the drop-in below `/etc/systemd/system/<unit>.d/`.
+- Do not edit a package-owned unit.
+- Run `systemctl daemon-reload` after installation.
 
-## Publication Review
+## Verification check
 
-- No real IP addresses, hostnames, tailnet names, credentials, or logs are present.
-- `git status --short` shows only intended files.
-- The repository license is Apache-2.0.
-- The first commit is small, direct, and reviewable.
+- Run `systemctl cat <unit>`.
+- Run `systemctl show <unit> -p Requires -p After -p ExecStartPre`.
+- Start the service while Tailscale is ready.
+- Confirm that the service listens only on the intended address and port.
+- Test the failure behavior with an approved maintenance procedure.
+- Reboot the host during an approved maintenance window.
+- Confirm the final service and Tailscale status.
+
+## Security check
+
+- Configure Tailscale grants or the approved existing access policy.
+- Keep service authentication enabled when it is available.
+- Apply the required local firewall policy.
+- Do not publish real names, addresses, credentials, or logs.
+
+## Repository check
+
+- Run both test scripts.
+- Run ShellCheck, actionlint, and zizmor.
+- Confirm that the documents describe the changed behavior and limitations.
+- Confirm that `git diff --check` passes.
+- Sign the commit.
+- Wait for CI and review before merge.

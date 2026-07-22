@@ -1,35 +1,54 @@
-# Security Considerations
+# Security considerations
 
-This pattern solves startup ordering. It does not authenticate clients, authorize users, encrypt application payloads beyond what Tailscale already provides on the network path, or replace service hardening.
+This pattern controls service start order.
+It does not authenticate a client or authorize an operation.
+It does not replace service hardening.
 
-## Keep Access Control Separate
+## Access control
 
-Use Tailscale ACLs to decide which users, groups, tags, or devices may reach the service. Also keep the service's own authentication and authorization enabled when appropriate.
+Use Tailscale grants for a new tailnet policy.
+Tailscale continues to support access control lists, but it recommends grants for new policies.
+Apply the least privilege that the service requires.
 
-Binding a service to a Tailscale IP can reduce exposure compared with binding to every interface, but it is not a complete access-control model by itself.
+Keep the service authentication and authorization controls enabled when they are available.
+Apply the local firewall policy that the host requires.
 
-## Avoid Public Operational Details
+Binding to a Tailscale address can reduce network exposure.
+The bind address is not a complete access-control policy.
 
-Public examples should not include:
+## Public data
 
-- real node names
+Do not publish these items:
+
+- node names
 - tailnet names
 - MagicDNS names
-- production Tailscale IP addresses
+- production Tailscale addresses
 - private LAN addresses
-- user emails
+- user email addresses
 - API tokens
 - service passwords
-- logs from real incidents
+- private keys
+- incident logs
 
-Use placeholders such as `<tailscale-ipv4>`, `<tailscale-ipv6>`, and `example.service`.
+Use `<tailscale-ipv4>`, `<tailscale-ipv6>`, and `example.service` as placeholders.
 
-## Review Before Publishing
+## Publication check
 
-Before publishing an example repository, scan for sensitive material:
+Run the repository contract before publication:
 
 ```sh
-grep -RInE '([0-9]{1,3}\.){3}[0-9]{1,3}|fd7a:|ts\.net|password|token|secret|key|@' .
+bash tests/test-repository.sh
 ```
 
-Then inspect any matches manually. Automated scans catch patterns, not intent.
+Inspect the complete diff.
+Automated pattern checks cannot determine the intent of all text.
+Remove sensitive data from commit messages, pull request text, and CI logs.
+
+## Operational limits
+
+- The online target does not monitor later connectivity changes.
+- A ready local interface does not prove that a remote peer is reachable.
+- A fixed Tailscale address can change after a node or configuration change.
+- A service can still expose an unintended port if its own configuration is wrong.
+- An indefinite wait can keep a boot transaction active.
