@@ -130,6 +130,7 @@ main() {
   require_text "${readme}" "Known limitations"
   require_text "${readme}" "boot-time readiness"
   require_text "${readme}" "can wait indefinitely"
+  require_text "${readme}" "checks Tailscale status, not local interface addresses"
   reject_text "${readme}" "Wants=tailscale-online.target"
 
   check_document_inventory

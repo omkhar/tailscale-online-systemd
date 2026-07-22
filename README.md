@@ -43,7 +43,7 @@ With a TUN interface, the command waits for these conditions:
 - `tailscaled` responds.
 - The backend state is `Running`.
 - The node has at least one Tailscale IP address.
-- A local network interface has that address.
+- A local network interface has the first reported address.
 
 In userspace-networking mode, the command does not wait for a physical interface.
 It still waits for `tailscaled`, the `Running` state, and a reported Tailscale address.
@@ -123,6 +123,8 @@ ExecStartPre=/usr/bin/tailscale ip --assert=<tailscale-ipv6>
 
 Each `ExecStartPre=` command must succeed before systemd starts the main service command.
 The assertion fails when the address is not one of the current node addresses.
+The assertion reads Tailscale status.
+It does not inspect local interface addresses.
 
 ### Inline wrapper
 
@@ -183,6 +185,7 @@ See [`docs/security-considerations.md`](docs/security-considerations.md).
 - A manual stop or restart of the required target also stops or restarts the protected service.
 - `tailscale wait` can wait indefinitely when Tailscale does not become ready.
 - The basic example accepts any local Tailscale address.
+- The `tailscale ip --assert` command checks Tailscale status, not local interface addresses.
 - A fixed address can change after a node reset, address change, or configuration change.
 - The examples do not configure service restart or start-limit policy.
 - The inline example still requires `/usr/bin/tailscale` and `tailscaled.service`.

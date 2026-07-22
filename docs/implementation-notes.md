@@ -70,6 +70,8 @@ ExecStartPre=/usr/bin/tailscale ip --assert=<tailscale-ipv4>
 
 The CLI compares the supplied address with the current node addresses.
 It exits with a nonzero status when it does not find the address.
+The assertion reads Tailscale status.
+It does not inspect local interface addresses.
 
 systemd runs the main `ExecStart=` command only after all unprefixed `ExecStartPre=` commands succeed.
 Use one check for each fixed address that the service needs.
