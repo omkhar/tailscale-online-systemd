@@ -139,6 +139,7 @@ main() {
   require_text "${REPO_DIR}/.github/workflows/validate.yml" "bash tests/test-repository.sh"
   require_text "${REPO_DIR}/.github/workflows/validate.yml" "bash tests/test-systemd.sh"
   require_text "${REPO_DIR}/.github/workflows/validate.yml" 'REQUIRE_SYSTEMD_ANALYZE: "1"'
+  require_text "${REPO_DIR}/.github/workflows/zizmor.yml" "uses: zizmorcore/zizmor-action@"
   require_text "${REPO_DIR}/.github/dependabot.yml" 'package-ecosystem: "github-actions"'
 
   if grep -R -Fq -- "ubuntu-latest" "${REPO_DIR}/.github/workflows"; then
