@@ -123,9 +123,8 @@ main() {
   require_text "${readme}" "ASD-STE100 Simplified Technical English"
   require_text "${readme}" "Tailscale v1.98.9"
   require_text "${readme}" "No application runtime"
+  require_text "${readme}" "pinned to a full commit SHA"
   require_text "${readme}" "Ubuntu 24.04"
-  require_text "${readme}" "v7.0.1"
-  require_text "${readme}" "v0.6.0"
   require_text "${readme}" "No mutation target"
   require_text "${readme}" "Known limitations"
   require_text "${readme}" "boot-time readiness"
@@ -140,7 +139,7 @@ main() {
   require_text "${REPO_DIR}/.github/workflows/validate.yml" "bash tests/test-repository.sh"
   require_text "${REPO_DIR}/.github/workflows/validate.yml" "bash tests/test-systemd.sh"
   require_text "${REPO_DIR}/.github/workflows/validate.yml" 'REQUIRE_SYSTEMD_ANALYZE: "1"'
-  require_text "${REPO_DIR}/.github/workflows/zizmor.yml" "zizmorcore/zizmor-action@6599ee8b7a49aef6a770f63d261d214911a7ce02 # v0.6.0"
+  require_text "${REPO_DIR}/.github/workflows/zizmor.yml" "uses: zizmorcore/zizmor-action@"
   require_text "${REPO_DIR}/.github/dependabot.yml" 'package-ecosystem: "github-actions"'
 
   if grep -R -Fq -- "ubuntu-latest" "${REPO_DIR}/.github/workflows"; then

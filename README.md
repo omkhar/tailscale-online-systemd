@@ -23,7 +23,7 @@ Check the installed units before you use an example on a different package.
 
 No application runtime is in this repository.
 The validation workflow uses Ubuntu 24.04, Bash, ShellCheck, and `systemd-analyze`.
-It uses `actions/checkout` v7.0.1 and `zizmorcore/zizmor-action` v0.6.0.
+Every action is pinned to a full commit SHA; the workflow files record the versions.
 Dependabot checks GitHub Actions each day.
 
 ## Readiness contract
