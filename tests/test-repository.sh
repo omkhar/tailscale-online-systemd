@@ -141,6 +141,9 @@ main() {
   require_text "${REPO_DIR}/.github/workflows/validate.yml" 'REQUIRE_SYSTEMD_ANALYZE: "1"'
   require_text "${REPO_DIR}/.github/workflows/zizmor.yml" "uses: zizmorcore/zizmor-action@"
   require_text "${REPO_DIR}/.github/dependabot.yml" 'package-ecosystem: "github-actions"'
+  require_text "${REPO_DIR}/.github/dependabot.yml" "default-days: 7"
+  require_text "${REPO_DIR}/.github/workflows/dependabot-auto-merge.yml" "gh pr merge --auto --squash"
+  require_text "${readme}" "dependabot-auto-merge.yml"
 
   if grep -R -Fq -- "ubuntu-latest" "${REPO_DIR}/.github/workflows"; then
     fail "a workflow uses the floating ubuntu-latest runner"

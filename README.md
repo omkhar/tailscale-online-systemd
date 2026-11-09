@@ -25,6 +25,11 @@ No application runtime is in this repository.
 The validation workflow uses Ubuntu 24.04, Bash, ShellCheck, and `systemd-analyze`.
 Every action is pinned to a full commit SHA; the workflow files record the versions.
 Dependabot checks GitHub Actions each day.
+Each Dependabot update waits for a seven-day cooldown.
+The `dependabot-auto-merge.yml` workflow enables auto-merge for each Dependabot pull request.
+GitHub merges the pull request after the required checks pass.
+The workflow does nothing until the `omkhar-automerge` GitHub App is installed on the repository and the `AUTOMERGE_APP_CLIENT_ID` and `AUTOMERGE_APP_PRIVATE_KEY` Dependabot secrets exist.
+The repository settings must also allow auto-merge.
 
 ## Readiness contract
 
